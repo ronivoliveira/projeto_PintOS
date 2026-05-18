@@ -30,15 +30,12 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
-static struct list lista_do_soninho; //LISTA DAS THREADS EM ESTADO DE SONO
-
 
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
 timer_init (void) 
 {
-  list_init(&lista_do_soninho); //INICIALIZA LISTA
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -96,8 +93,11 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  if (timer_elapsed(start) < ticks)
+  {
+    thread_sleep(start + ticks);
+  }
+  
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
