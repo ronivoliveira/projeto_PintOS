@@ -38,6 +38,8 @@ static struct thread *initial_thread;
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
 
+static struct list lista_do_soninho; //LISTA DAS THREADS EM ESTADO DE SONO
+
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
   {
@@ -93,6 +95,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init(&lista_do_soninho); //INICIALIZA LISTA DO SONINHO
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -183,6 +186,7 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
+  t->despertador = 0; //INICIALIZA A VARÁVEL DESPERTADOR EM 0
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
