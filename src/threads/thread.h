@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include <fixed_t.h>
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -94,6 +95,8 @@ struct thread
     struct list_elem elem;              /* List element. */
 
     int64_t despertador; //IMPLEMENTEI A VARIÁVEL QUE ACORDA A THREAD
+    int nice;    //valor de nice da thread, ou seja, como ela interage com as outras
+    fixed_t recent_cpu; //Quantidade de tempo de CPU que a thread recebeu recentemente
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -109,6 +112,9 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+extern fixed_t load_media; //media da carga do sistema em ponto fixo  
+
 
 void thread_init (void);
 void thread_start (void);
@@ -140,5 +146,11 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+/* funcoes adicionadas para calcular prioridades (advanced scheduler)*/
+void thread_calculate_priority (struct thread *t, void *aux);
+void thread_calculate_recent_cpu (struct thread *t, void *aux);
+void thread_calculate_load_media (void);
+void thread_test_preempt (void);
+bool thread_compare_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 #endif /* threads/thread.h */
