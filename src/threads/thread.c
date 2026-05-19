@@ -11,7 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
-#include <fixed_t.h>
+#include "threads/fixed_t.h"
 #include "devices/timer.h"
 #ifdef USERPROG
 #include "userprog/process.h"
@@ -161,7 +161,7 @@ void thread_calcula_recent_cpu(struct thread *t, void *aux UNUSED)
 }
 
 //formula prioridade
-void thread_calculate_priority(struct thread *t, void *aux UNUSED)
+void thread_calcula_priority(struct thread *t, void *aux UNUSED)
 {
   if (t == idle_thread) return; //se a thread tá parada
 
@@ -205,13 +205,13 @@ thread_tick (void)
 
     //a cada segundo (100 ticks), atualiza load_media e recent_cpu de TODAS as threads
     if (timer_ticks() % 100 == 0) {
-      thread_calculate_load_media();
-      thread_foreach(thread_calculate_recent_cpu, NULL);
+      thread_calcula_load_media();
+      thread_foreach(thread_calcula_recent_cpu, NULL);
     }
 
     //a cada 4 ticks, atualiza a prioridade de TODAS as threads
     if (timer_ticks() % 4 == 0) {
-      thread_foreach(thread_calculate_priority, NULL);
+      thread_foreach(thread_calcula_priority, NULL);
       // Se as prioridades mudaram, é bom reordenar a ready_list (se estiver usando list_insert_ordered)
       list_sort(&ready_list, thread_compare_priority, NULL);
     }
@@ -480,7 +480,7 @@ thread_set_nice (int nice UNUSED)
 {
   intr_disable(); //desliga as interrupções
   thread_current()->nice = nice; //atualiza o valor
-  thread_calculate_priority(thread_current(), NULL); //calcula prioridade
+  thread_calcula_priority(thread_current(), NULL); //calcula prioridade
   thread_test_preempt(); //verifica se precisa ceder a CPU após mudança de prioridade
   intr_enable(); //liga as interrupções
 }
