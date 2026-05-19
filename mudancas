@@ -13,3 +13,18 @@ variavel externa fixed_t load_media // para ter a media do sistema.
 add as funcoẽs
 
 )
+
+
+
+
+
+
+
+
+
+
+ERROS: 
+unção timer_sleep, você provavelmente está pegando o tempo atual (timer_ticks()) 
+antes de desabilitar as interrupções (intr_disable()). Se ocorrer uma interrupção de hardware exatamente entre 
+essas duas linhas de código, o relógio avança 1 tick nas suas costas, e a sua thread dorme 1 tick 
+a mais do que deveria!
