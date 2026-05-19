@@ -8,5 +8,8 @@ threads_dormindo(criado),
 
 threads.h(
 int64_t ticks_acordar(criado),
+dentro da struct thread( int nice, fixed_t recent cpu)
+variavel externa fixed_t load_media // para ter a media do sistema.
+add as funcoẽs
 
 )
