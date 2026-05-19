@@ -7,6 +7,7 @@
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+#include "threads/fixed_t.h"
   
 /* See [8254] for hardware details of the 8254 timer chip. */
 
@@ -96,14 +97,14 @@ timer_sleep (int64_t ticks)
   if (ticks < 0) 
     return;
 
+  ASSERT (intr_get_level () == INTR_ON);
+
+  enum intr_level old_level = intr_disable (); //desabilita as interrupções pra mexer na lista de forma segura   
+
   int64_t start = timer_ticks ();
   struct thread *atual = thread_current();
 
-  ASSERT (intr_get_level () == INTR_ON);
-
   atual->ticks_acordar = start + ticks; 
-
-  enum intr_level old_level = intr_disable (); //desabilita as interrupções pra mexer na lista de forma segura 
   
   //adiciona à lista de espera e bloqueia a thread quando n tiver sendo utilizado
   list_push_back(&threads_dormindo, &atual->elem);
@@ -184,7 +185,7 @@ timer_print_stats (void)
 
 /* Timer interrupt handler. */
 static void
-timer_interrupt (intr_frame *args UNUSED)
+timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
@@ -194,7 +195,7 @@ timer_interrupt (intr_frame *args UNUSED)
   {
     struct thread *thread = list_entry(thread_atual, struct thread, elem);
     
-    if(ticks > thread->ticks_acordar){ // se os ticks passarem do tempo da thread dormindo, removemos ela da lista e desbloquyeamos
+    if(ticks >= thread->ticks_acordar){ // se os ticks passarem do tempo da thread dormindo, removemos ela da lista e desbloquyeamos
       thread_atual = list_remove(thread_atual);
 
       thread_unblock(thread);
