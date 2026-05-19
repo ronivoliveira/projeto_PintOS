@@ -1,0 +1,12 @@
+alarm clock 
+
+timer.c (
+timer_sleep, 
+timer_interrupt,
+threads_dormindo(criado),
+)
+
+threads.h(
+int64_t ticks_acordar(criado),
+
+)
