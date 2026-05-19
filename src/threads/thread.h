@@ -94,9 +94,6 @@ struct thread
     struct list_elem elem;              /* List element. */
 
     int64_t despertador; //IMPLEMENTEI A VARIÁVEL QUE ACORDA A THREAD
-    int original_priority; // prioridade passada para o PRIORITYSCHEDULER
-    struct list lock_holding; // 
-    struct lock *lock_waiting; // trava que a thread está esperando
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
