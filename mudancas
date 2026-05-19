@@ -41,7 +41,9 @@ Retorna o tempo recente de CPU que a thread atual consumiu.
 Segue exatamente a mesma lógica do thread_get_load_avg. O valor de recent_cpu é mantido como ponto fixo no sistema, por isso é necessário multiplicá-lo por 100 e arredondá-lo para um número inteiro antes de o devolver a quem o solicitou.
 
 
+adição da funcao de thread sleep e thread awake também no threads.c e threads.h
 
+adição da funcao thread_awake dentro do thread interrupt em timer.c
 
 
 
