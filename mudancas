@@ -14,7 +14,31 @@ add as funcoẽs
 
 )
 
+explicação das funções alteradas/adicionadas em threads.c:
+thread_set_nice(int nice)
+Esta função serve para que a thread atual altere o seu próprio valor do nice.
 
+intr_disable() e intr_enable(): Como a mudança do nice vai alterar a prioridade da thread, é preciso desligar as interrupções temporariamente. Isso garante que a atualização ocorra de forma atómica (sem ser interrompida a meio por um tick do relógio), evitando inconsistências no sistema.
+
+thread_current()->nice = nice: Atualiza efetivamente o valor.
+
+thread_calculate_priority(...): Como a fórmula da prioridade é baseada no nice (priority = PRI_MAX - (recent_cpu / 4) - (nice * 2)), mudar o nice obriga a recalcular a prioridade imediatamente. Se o nice aumentar, a prioridade vai descer.
+
+thread_test_preempt(): Se a prioridade da thread atual tiver acabado de descer (devido a um nice maior), é possível que agora exista outra thread na fila de prontos (ready_list) com uma prioridade maior. Esta função verifica isso e, se for o caso, faz a thread atual ceder o processador (thread_yield()).
+
+thread_get_nice(void)
+É uma função muito simples (um getter). Serve apenas para retornar o valor atual de nice da thread que está a executar no momento.
+thread_get_load_avg(void)
+Retorna a estimativa de carga global do sistema.
+
+O problema do ponto fixo: Como o sistema operativo Pintos não pode devolver números decimais/fracionários diretamente para os programas ou para a bateria de testes (pois estamos a usar aritmética simulada com fixed_t), a especificação do projeto exige uma adaptação.
+
+A solução: A função multiplica a carga do sistema (load_media) por 100 usando a macro/função mult_fixed_int, e em seguida utiliza fixed_to_int_round para converter o resultado de volta para um inteiro convencional do C, com arredondamento para o mais próximo.
+
+thread_get_recent_cpu(void)
+Retorna o tempo recente de CPU que a thread atual consumiu.
+
+Segue exatamente a mesma lógica do thread_get_load_avg. O valor de recent_cpu é mantido como ponto fixo no sistema, por isso é necessário multiplicá-lo por 100 e arredondá-lo para um número inteiro antes de o devolver a quem o solicitou.
 
 
 
