@@ -176,6 +176,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+  thread_awake(ticks); //verifica se há threads que precisam acordar
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

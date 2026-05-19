@@ -152,5 +152,7 @@ void thread_calculate_recent_cpu (struct thread *t, void *aux);
 void thread_calculate_load_media (void);
 void thread_test_preempt (void);
 bool thread_compare_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
+void thread_sleep (int64_t ticks);
+void thread_awake (int64_t current_ticks);
 
 #endif /* threads/thread.h */
