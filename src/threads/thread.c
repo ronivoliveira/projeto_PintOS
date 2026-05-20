@@ -383,7 +383,11 @@ thread_test_preempt (void)
         struct thread *next = list_entry (list_front (&ready_list), struct thread, elem);
         if (next->priority > thread_current ()->priority) 
           {
-            thread_yield ();
+            if (intr_context ()) {
+                intr_yield_on_return (); //para chamar de dentro do timer_interrupt
+            } else {
+                thread_yield (); //para chamar em fluxos normais
+            }
           }
       }
 }
