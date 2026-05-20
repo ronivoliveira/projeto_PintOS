@@ -25,62 +25,7 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
-/* A kernel thread or user process.
-
-   Each thread structure is stored in its own 4 kB page.  The
-   thread structure itself sits at the very bottom of the page
-   (at offset 0).  The rest of the page is reserved for the
-   thread's kernel stack, which grows downward from the top of
-   the page (at offset 4 kB).  Here's an illustration:
-
-        4 kB +---------------------------------+
-             |          kernel stack           |
-             |                |                |
-             |                |                |
-             |                V                |
-             |         grows downward          |
-             |                                 |
-             |                                 |
-             |                                 |
-             |                                 |
-             |                                 |
-             |                                 |
-             |                                 |
-             |                                 |
-             +---------------------------------+
-             |              magic              |
-             |                :                |
-             |                :                |
-             |               name              |
-             |              status             |
-        0 kB +---------------------------------+
-
-   The upshot of this is twofold:
-
-      1. First, `struct thread' must not be allowed to grow too
-         big.  If it does, then there will not be enough room for
-         the kernel stack.  Our base `struct thread' is only a
-         few bytes in size.  It probably should stay well under 1
-         kB.
-
-      2. Second, kernel stacks must not be allowed to grow too
-         large.  If a stack overflows, it will corrupt the thread
-         state.  Thus, kernel functions should not allocate large
-         structures or arrays as non-static local variables.  Use
-         dynamic allocation with malloc() or palloc_get_page()
-         instead.
-
-   The first symptom of either of these problems will probably be
-   an assertion failure in thread_current(), which checks that
-   the `magic' member of the running thread's `struct thread' is
-   set to THREAD_MAGIC.  Stack overflow will normally change this
-   value, triggering the assertion. */
-/* The `elem' member has a dual purpose.  It can be an element in
-   the run queue (thread.c), or it can be an element in a
-   semaphore wait list (synch.c).  It can be used these two ways
-   only because they are mutually exclusive: only a thread in the
-   ready state is on the run queue, whereas only a thread in the
-   blocked state is on a semaphore wait list. */
+/* A kernel thread or user process. */
 struct thread
   {
     /* Owned by thread.c. */
@@ -94,9 +39,10 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-    int64_t despertador; //IMPLEMENTEI A VARIÁVEL QUE ACORDA A THREAD
-    int nice;    //valor de nice da thread, ou seja, como ela interage com as outras
-    fixed_t recent_cpu; //Quantidade de tempo de CPU que a thread recebeu recentemente
+    /* Variáveis do Alarm Clock e Advanced Scheduling */
+    int64_t ticks_acordar;              /* Momento exato em que a thread deve acordar */
+    int nice;                           /* Valor de nice da thread */
+    fixed_t recent_cpu;                 /* Tempo de CPU recente em ponto fixo */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -113,7 +59,7 @@ struct thread
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
 
-extern fixed_t load_media; //media da carga do sistema em ponto fixo  
+extern fixed_t load_media; /* Métrica de carga global do sistema */
 
 
 void thread_init (void);
@@ -146,13 +92,15 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-/* funcoes adicionadas para calcular prioridades (advanced scheduler)*/
-void thread_calculate_priority (struct thread *t, void *aux);
-void thread_calculate_recent_cpu (struct thread *t, void *aux);
-void thread_calculate_load_media (void);
+
+/* -----------------------------------------------------------------
+   Novas funções interfaceadas com o timer.c (Advanced Scheduling)
+   ----------------------------------------------------------------- */
+void thread_increment_recent_cpu (void);
+void thread_calculate_load_avg (void);
+void thread_calculate_all_recent_cpu (void);
+void thread_calculate_all_priorities (void);
 void thread_test_preempt (void);
 bool thread_compare_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
-void thread_sleep (int64_t ticks);
-void thread_awake (int64_t current_ticks);
 
 #endif /* threads/thread.h */
