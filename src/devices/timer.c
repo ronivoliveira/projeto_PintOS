@@ -201,6 +201,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
       if (ticks % 4 == 0)
         {
           thread_calculate_all_priorities ();
+          thread_test_preempt (); //testaa preempção após modificação das prioridades
         }
     }
 
@@ -223,6 +224,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
           thread_atual = list_next(thread_atual);
         }
     }
+    thread_test_preempt(); //testa se alguma thread q acordou do alarme tem prioridade maior que a atual
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
