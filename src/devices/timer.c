@@ -7,7 +7,7 @@
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
-#include "threads/fixed_t.h" // Garante o suporte à aritmética de ponto fixo do MLFQS
+#include "threads/fixed_t.h" //garante o suporte à aritmética de ponto fixo do MLFQS
   
 /* See [8254] for hardware details of the 8254 timer chip. */
 
@@ -25,7 +25,7 @@ static int64_t ticks;
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
 
-/* Lista global que armazena as threads bloqueadas pelo timer_sleep */
+/*lista global que armazena as threads bloqueadas pelo timer_sleep */
 static struct list threads_dormindo;
 
 static intr_handler_func timer_interrupt;
@@ -43,7 +43,7 @@ timer_init (void)
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 
-  /* Inicializa a lista de threads adormecidas (Alarm Clock) */
+  /*inicializa a lista de threads adormecidas */
   list_init (&threads_dormindo);
 }
 
@@ -102,20 +102,22 @@ timer_sleep (int64_t ticks)
 
   ASSERT (intr_get_level () == INTR_ON);
 
-  /* Desabilita as interrupções para garantir atomicidade ao mexer na lista */
+  /*desabilita as interrupções para evitar race conditions
+     enquanto atualiza a lista de threads adormecidas. */
   enum intr_level old_level = intr_disable ();   
 
   int64_t start = timer_ticks ();
   struct thread *atual = thread_current();
 
-  /* Define o momento exato em que a thread deve acordar */
+  /*calcula o tick para acordar a thread deve ser acordada. */
   atual->ticks_acordar = start + ticks; 
   
-  /* Insere na lista e bloqueia o estado da thread */
+  /*coloca a thread na lista de espera e bloqueia sua execução. 
+     a thre só será desbloqueada quando o tick atual atingir ou ultrapassar ticks_acordar. */
   list_push_back(&threads_dormindo, &atual->elem);
   thread_block();
 
-  /* Restaura o nível anterior de interrupção */
+  //restaura o estado anterior das interrupções após bloqueio. 
   intr_set_level(old_level); 
 }
 
@@ -181,15 +183,12 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick ();
 
-  /* -------------------------------------------------------------
-   * BLOCO ADVANCED SCHEDULING (MLFQS)
-   * ------------------------------------------------------------- */
   if (thread_mlfqs)
     {
-      /* Incrementa o recent_cpu da thread que está rodando atualmente */
+      //incrementa o recent_cpu da thread que está rodando atualmente 
       thread_increment_recent_cpu ();
 
-      /* A cada 1 segundo (quantidade de ticks igual a TIMER_FREQ),
+      /*a cada 1 segundo (quantidade de ticks igual a TIMER_FREQ),
          recalculamos o load_avg e o recent_cpu de TODAS as threads */
       if (ticks % TIMER_FREQ == 0)
         {
@@ -197,7 +196,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
           thread_calculate_all_recent_cpu ();
         }
 
-      /* A cada 4 ticks, recalculamos as prioridades dinâmicas */
+      /*de 4 em 4 ticks recalculamos as prioridades dinâmicas */
       if (ticks % 4 == 0)
         {
           thread_calculate_all_priorities ();
@@ -205,15 +204,15 @@ timer_interrupt (struct intr_frame *args UNUSED)
         }
     }
 
-  /* -------------------------------------------------------------
-   * BLOCO ALARM CLOCK
-   * ------------------------------------------------------------- */
+  
+  /*verifica a lista de threads adormecidas e acorda as que já
+     completaram seu tempo de sono. */
   struct list_elem *thread_atual = list_begin(&threads_dormindo);
   while (thread_atual != list_end(&threads_dormindo))
     {
       struct thread *thread = list_entry(thread_atual, struct thread, elem);
       
-      /* Se os ticks do sistema alcançaram o tempo estipulado, acorda a thread */
+      //se os ticks do sistema alcançaram o tempo estipulado a thread acorda 
       if (ticks >= thread->ticks_acordar)
         {
           thread_atual = list_remove(thread_atual);
@@ -224,7 +223,9 @@ timer_interrupt (struct intr_frame *args UNUSED)
           thread_atual = list_next(thread_atual);
         }
     }
-    thread_test_preempt(); //testa se alguma thread q acordou do alarme tem prioridade maior que a atual
+  /*depois de desbloquear possíveis threads do alarme, verifica se devemos
+     forçar preempção da thread atual. */
+  thread_test_preempt(); //testa se alguma thread q acordou do alarme tem prioridade maior que a atual
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
