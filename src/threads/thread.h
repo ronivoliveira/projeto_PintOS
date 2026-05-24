@@ -6,6 +6,11 @@
 #include <stdint.h>
 #include "threads/fixed_t.h"
 
+/*Adicionamos o ticks_acordar, que é o momento exato em que a thread deve acordar, também adicionamos o valor NICE, que define as prioridades dos processos, definindo quanto tempo de CPU o processo receberá,
+de cada thread, também implementamos a ideia do FIXED, na struct da thread,
+também implementamos funções para a implementação do Advanced Scheduling,  */
+
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
