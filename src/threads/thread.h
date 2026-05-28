@@ -98,9 +98,7 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-/* -----------------------------------------------------------------
-   Novas funções interfaceadas com o timer.c (Advanced Scheduling)
-   ----------------------------------------------------------------- */
+//implementadas
 void thread_increment_recent_cpu (void);
 void thread_calculate_load_avg (void);
 void thread_calculate_all_recent_cpu (void);
